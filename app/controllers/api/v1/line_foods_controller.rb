@@ -1,7 +1,7 @@
 module Api
   module V1
     class LineFoodsController < ApplicationController
-      before_action :set_food, only: %i[create]
+      before_action :set_food, only: %i[create replace]
 
       # 仮注文の一覧
       def index
@@ -40,6 +40,26 @@ module Api
           }, status :created
         else
           # HTTPレスポンスステータスコードが500系
+          render json: {}, status :internal_server_error
+        end
+      end
+
+      # 例外ケース（古い仮注文を論理削除し、新しいデータを作成する）
+      def replace
+        # 論理削除
+        LineFood.acrive.other_restaurant(@ordered_food.restaurant.id).each do |line_food|
+          line_food.update_attribute(:active, false)
+        end
+
+        # @line_foodの生成
+        set_line_food(@oordered_food)
+
+        # 保存
+        if @line_food.save
+          render json: {
+            line_food: @line_food
+          }, status :created
+        else
           render json: {}, status :internal_server_error
         end
       end
