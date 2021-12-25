@@ -3,6 +3,24 @@ module Api
     class LineFoodsController < ApplicationController
       before_action :set_food, only: %i[create]
 
+      # 仮注文の一覧
+      def index
+        line_foods = LineFood.active
+        #exists...対象のインスタンスのデータがDBに存在するかどうか？をtrue/falseで返すメソッド
+        if line_foods.exists?
+          render json: {
+            line_food_ids: line_foods.map{|line_food| line__food.id},
+            restaurant: lind_foods[0].restaurant,
+            count: line_foods.sum{|line_food| line_food[:count]},
+            amount: line_foods.sum{|line_food| line_food.total_amount}
+          }, status :ok
+        else
+          # 204
+          render json: {}, status :no_count
+        end
+      end
+
+      # 仮注文の作成
       def create
         # 他店舗でアクティブなLineFoodが存在するか(例外パターン)
         if LineFood.active.other_restarant(@ordered_food.restaurant.id).exists?
