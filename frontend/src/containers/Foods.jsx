@@ -8,7 +8,7 @@ export const Foods = () => {
   const { restaurantsId } = useParams();
 
   useEffect(() => {
-    fetchFoods(1)
+    fetchFoods(restaurantsId)
       .then((data) =>
         console.log(data)
       )
