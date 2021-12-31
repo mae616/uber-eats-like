@@ -13,20 +13,20 @@ module Api
             restaurant: lind_foods[0].restaurant,
             count: line_foods.sum{|line_food| line_food[:count]},
             amount: line_foods.sum{|line_food| line_food.total_amount}
-          }, status :ok
+          }, status: :ok
         else
           # 204
-          render json: {}, status :no_count
+          render json: {}, status: :no_content
         end
       end
 
       # 仮注文の作成
       def create
         # 他店舗でアクティブなLineFoodが存在するか(例外パターン)
-        if LineFood.active.other_restarant(@ordered_food.restaurant.id).exists?
+        if LineFood.active.other_restaurant(@ordered_food.restaurant.id).exists?
           return render json: {
             existing_restaurant: LineFood.other_restaurant(@ordered_food.restaurant.id).first.restaurant.name,
-            new_restaurant: Food.fine(parama[:food_id]).restaurant.name,
+            new_restaurant: Food.find(params[:food_id]).restaurant.name,
           }, status: :not_acceptable # 406 Not Acceptable
         end
 
@@ -37,37 +37,37 @@ module Api
         if @line_food.save
           render json: {
             line_food: @line_food
-          }, status :created
+          }, status: :created
         else
           # HTTPレスポンスステータスコードが500系
-          render json: {}, status :internal_server_error
+          render json: {}, status: :internal_server_error
         end
       end
 
       # 例外ケース（古い仮注文を論理削除し、新しいデータを作成する）
       def replace
         # 論理削除
-        LineFood.acrive.other_restaurant(@ordered_food.restaurant.id).each do |line_food|
+        LineFood.active.other_restaurant(@ordered_food.restaurant.id).each do |line_food|
           line_food.update_attribute(:active, false)
         end
 
         # @line_foodの生成
-        set_line_food(@oordered_food)
+        set_line_food(@ordered_food)
 
         # 保存
         if @line_food.save
           render json: {
             line_food: @line_food
-          }, status :created
+          }, status: :created
         else
-          render json: {}, status :internal_server_error
+          render json: {}, status: :internal_server_error
         end
       end
 
       private
 
       def set_food
-        @ordered_food = Food.fine(params[:food_id])
+        @ordered_food = Food.find(params[:food_id])
       end
 
       # line_foodインスタンスを生成する
@@ -82,7 +82,7 @@ module Api
         else
           # インスタンスを新規作成
           @line_food = ordered_food.build_line_food(
-            count: params[:count]
+            count: params[:count],
             restaurant: ordered_food.restaurant,
             active: true
           )
