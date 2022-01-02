@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useReducer } from 'react';
 
 import { fetchLineFoods } from '../apis/line_foods';
+import { postOrder } from '../apis/orders';
 
 import {
   initialState,
@@ -25,6 +26,16 @@ export const Orders = () => {
       )
       .catch((e) => console.error(e));
   }, []);
+
+  const postLineFoods = () => {
+    dispatch({ type: lineFoodsActionTypes.POSTING });
+    postOrder({
+      line_food_ids: state.lineFoodsSummary.line_food_ids
+    }).then(() => {
+      dispatch({ type: lineFoodsActionTypes.POST_SUCCESS });
+      window.location.reload();
+    });
+  };
 
   return (
     <Fragment>
