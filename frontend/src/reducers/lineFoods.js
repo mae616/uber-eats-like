@@ -1,5 +1,4 @@
 import { REQUEST_STATE } from '../constants';
-import { lineFoods } from '../urls';
 
 export const initialState = {
   fetchState: REQUEST_STATE.INITIAL,  // 取得状況
