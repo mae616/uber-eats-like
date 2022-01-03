@@ -8,11 +8,21 @@ module Api
         line_foods = LineFood.active
         #exists...対象のインスタンスのデータがDBに存在するかどうか？をtrue/falseで返すメソッド
         if line_foods.exists?
+          line_food_ids = []
+          count = 0
+          amount = 0
+
+          line_foods.each do |line_food|
+            line_food_ids << line_food.id # idを参照して配列に追加する
+            count += line_food[:count] # countのデータを合算する
+            amount += line_food.total_amount #total_amountを合算する
+          end
+          
           render json: {
-            line_food_ids: line_foods.map{|line_food| line_food.id},
+            line_food_ids: line_food_ids,
             restaurant: line_foods[0].restaurant,
-            count: line_foods.sum{|line_food| line_food[:count]},
-            amount: line_foods.sum{|line_food| line_food.total_amount}
+            count: count,
+            amount: amount
           }, status: :ok
         else
           # 204
